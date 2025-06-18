@@ -16,9 +16,9 @@ class QPAD(customtkinter.CTk):
         self.title("Q-PAD")
         self.geometry("400x400")
 
-
         # app widgets
         self.button = customtkinter.CTkButton(self, command=self.button_click)
+        self.button.grid(row=0, column=0, padx=20, pady=10)
 
     # app methods
     def button_click(self):
