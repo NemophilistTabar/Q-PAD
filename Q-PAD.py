@@ -9,7 +9,7 @@ import tkinter as tk
 set_appearance_mode("system")
 set_default_color_theme("blue")
 
-# establish aplication
+# establish application
 class QPAD(customtkinter.CTk):
     def __init__(self):
         super().__init__()
