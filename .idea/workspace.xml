@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ef2092b3-7757-4630-9b51-e6882d88a340" name="Changes" comment="vcvvsfd">
-      <change beforePath="$PROJECT_DIR$/.idea/PythonProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PythonProject.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="ef2092b3-7757-4630-9b51-e6882d88a340" name="Changes" comment="The True Pinicle of Tech">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Images/bcacu.png" beforeDir="false" afterPath="$PROJECT_DIR$/Images/bcacu.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Q-PAD.py" beforeDir="false" afterPath="$PROJECT_DIR$/Q-PAD.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -102,7 +99,7 @@
       <updated>1750238408492</updated>
       <workItem from="1750238409539" duration="2669000" />
       <workItem from="1750286426783" duration="2680000" />
-      <workItem from="1750824336947" duration="3802000" />
+      <workItem from="1750824336947" duration="9497000" />
     </task>
     <task id="LOCAL-00001" summary="vcvvsfd">
       <option name="closed" value="true" />
@@ -144,7 +141,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750291278698</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="The True Pinicle of Tech">
+      <option name="closed" value="true" />
+      <created>1750828324410</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1750828324410</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -163,11 +168,12 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="vcvvsfd" />
-    <option name="LAST_COMMIT_MESSAGE" value="vcvvsfd" />
+    <MESSAGE value="The True Pinicle of Tech" />
+    <option name="LAST_COMMIT_MESSAGE" value="The True Pinicle of Tech" />
     <option name="LAST_CHUNK_COMMIT_MESSAGE" value="comment change" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/PythonProject$Q_PAD.coverage" NAME="Q-PAD Coverage Results" MODIFIED="1750240971049" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Q_PAD$Q_PAD.coverage" NAME="Q-PAD Coverage Results" MODIFIED="1750828148790" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Q_PAD$Q_PAD.coverage" NAME="Q-PAD Coverage Results" MODIFIED="1750914414382" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
