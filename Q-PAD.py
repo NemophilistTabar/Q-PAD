@@ -1,6 +1,6 @@
 # import libraries
 import customtkinter
-from customtkinter import CTk, set_appearance_mode, set_default_color_theme
+from customtkinter import CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame
 import PIL
 from PIL import Image, ImageTk
 import tkinter as tk
@@ -9,66 +9,74 @@ import tkinter as tk
 set_appearance_mode("system")
 set_default_color_theme("blue")
 
+# HomePage
+class homePage(CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        label = CTkLabel(self, text="Home Page", font=("Arial", 20))
+        label.pack(pady=20)
+
+        CTkButton(self, text="View Database", font=("Arial", 20),
+                  command=lambda: controller.showFrame("databasePage")).pack(pady=100)
+        CTkButton(self, text="View Cadet Equipment", font=("Arial", 20),
+                  command=lambda: controller.showFrame("equipmentPage")).pack(pady=100)
+        CTkButton(self, text="Generate Report", font=("Arial", 20),
+                  command=lambda: controller.showFrame("reportPage")).pack(pady=100)
+
+# Database Page
+class databasePage(CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        label = CTkLabel(self, text="Database", font=("Arial", 20))
+        label.pack(pady=20)
+
+        CTKButton = CTkButton(self, text="Home", font=("Arial", 20),
+                              command=lambda: controller.showFrame("homePage")).pack(pady=10)
+
+# Cadet Equipment Page
+class equipmentPage(CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        label = CTkLabel(self, text="Cadet Equipment", font=("Arial", 20))
+        label.pack(pady=20)
+
+        CTKButton = CTkButton(self, text="Home", font=("Arial", 20),
+                              command=lambda: controller.showFrame("homePage")).pack(pady=10)
+
+# Report Page
+class reportPage(CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        label = CTkLabel(self, text="Report", font=("Arial", 20))
+        label.pack(pady=20)
+
+        CTKButton = CTkButton(self, text="Home", font=("Arial", 20),
+                              command=lambda: controller.showFrame("homePage")).pack(pady=10)
+
 # establish application
-class QPAD(customtkinter.CTk):
+class QPAD(CTk):
     def __init__(self):
         super().__init__()
         self.title("Q-PAD")
         self.geometry("1200x700")
 
-        # configure grid layout
-        for i in range(4):
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(15):
-            self.grid_rowconfigure(i, weight=1)
+        self.container = CTkFrame(self)
+        self.container.pack(fill="both", expand=True)
 
-        # frame configeration
-        self.button_frame = customtkinter.CTkFrame(self)
-        self.button_frame.grid(row=3, column=1, rowspan=3, padx=20, pady=10)
+        self.frames = {}
 
-        # images repository
-        image = Image.open("Images/bcacu.png")
-        resized_image = image.resize((200, 200))
-        self.logo = ImageTk.PhotoImage(resized_image)
+        for F in (homePage, databasePage, equipmentPage, reportPage):
+            pageName = F.__name__
+            frame = F(parent=self.container, controller=self)
+            self.frames[pageName] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
 
-        # app buttons
-        button_width = 500
-        button_height = 100
+        self.showFrame("homePage")
 
-        self.databasebutton = customtkinter.CTkButton(
-            self.button_frame,
-            command=self.button_click,
-            text="View Database",
-            width=button_width,
-            height=button_height)
-        self.databasebutton.pack(pady=20)
+    def showFrame(self, pageName):
+        frame = self.frames[pageName]
+        frame.tkraise()
 
-        self.individualbutton = customtkinter.CTkButton(
-            self.button_frame,
-            command=self.button_click,
-            text="View Cadet Equipment",
-            width=button_width,
-            height=button_height)
-        self.individualbutton.pack(pady=20)
-
-        self.reportbutton = customtkinter.CTkButton(
-            self.button_frame,
-            command=self.button_click,
-            text="Generate Report",
-            width=button_width,
-            height=button_height)
-        self.reportbutton.pack(pady=20)
-
-        # app labels
-        self.bcacu = customtkinter.CTkLabel(self, image=self.logo, text="")
-        self.bcacu.grid(row=14, column=1, padx=20, pady=10)
-
-        self.titlelabel = customtkinter.CTkLabel(self, text="Welcome to Q-PAD", font=("Arial", 24, "bold"))
-        self.titlelabel.grid(row=0, column=1, pady=20)
-
-    # app functions
-    def button_click(self):
-        print("button click")
-
-app = QPAD()
-app.mainloop()
+if __name__ == "__main__":
+    app = QPAD()
+    app.mainloop()
