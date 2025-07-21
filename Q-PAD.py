@@ -1,5 +1,8 @@
 # import libraries
-from customtkinter import CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame, CTkScrollableFrame
+from customtkinter import (CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame,
+                           CTkScrollableFrame, CTkImage)
+from PIL import Image
+
 
 
 # HomePage
@@ -52,12 +55,16 @@ class databasePage(CTkFrame):
         # Sidebar
         sidebar = CTkFrame(self, width=200, fg_color="#2e2e2e")
         sidebar.pack(side="left", fill="y")
+        sidebar.pack_propagate(False)
 
         label = CTkLabel(sidebar, text="Database", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
         homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
         homeButton.pack(pady=10)
+
+        logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s")
+        logo_label.pack(side="bottom", pady=10)
 
         # Main content area
         content = CTkFrame(self, fg_color="transparent")
@@ -72,11 +79,14 @@ class equipmentPage(CTkFrame):
         sidebar = CTkFrame(self, width=200, fg_color="#2e2e2e")
         sidebar.pack(side="left", fill="y")
 
-        label = CTkLabel(self, text="Cadet Equipment", font=("Arial", 20)) # Page Title
+        label = CTkLabel(sidebar, text="Cadet Equipment", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
-        homeButton = CTkButton(self, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
         homeButton.pack(pady=10)
+
+        logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s")
+        logo_label.pack(side="bottom", pady=10)
 
         # Main content area
         content = CTkFrame(self, fg_color="transparent")
@@ -91,11 +101,14 @@ class reportPage(CTkFrame):
         sidebar = CTkFrame(self, width=200, fg_color="#2e2e2e")
         sidebar.pack(side="left", fill="y")
 
-        label = CTkLabel(self, text="Report", font=("Arial", 20)) # Page Title
+        label = CTkLabel(sidebar, text="Report", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
-        homeButton = CTkButton(self, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
         homeButton.pack(pady=10)
+
+        logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s") # Braemar Collage Cadets Logo
+        logo_label.pack(side="bottom", pady=10)
 
         # Main content area
         content = CTkFrame(self, fg_color="transparent")
@@ -111,6 +124,10 @@ class QPAD(CTk):
         # Set appearance parameters
         set_appearance_mode("system")
         set_default_color_theme("blue")
+
+        # Load logo image
+        Logo = Image.open("Images/bcacu.png")
+        self.shared_image = CTkImage(light_image=Logo, dark_image=Logo, size=(100, 100))
 
         self.container = CTkFrame(self)
         self.container.pack(fill="both", expand=True)
