@@ -27,6 +27,9 @@ class homePage(CTkFrame):
                                  command=lambda: controller.showFrame("reportPage"))
         reportButton.pack(pady=20)
 
+        logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s")
+        logo_label.pack(side="bottom", pady=10)
+
         # Main content area
         content = CTkFrame(self, fg_color="transparent")
         content.pack(side="left", fill="both", expand=True)
