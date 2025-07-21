@@ -6,62 +6,100 @@ from customtkinter import CTk, set_appearance_mode, set_default_color_theme, CTk
 class homePage(CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        label = CTkLabel(self, text="Home Page", font=("Arial", 20))
+
+        # Sidebar
+        sidebar = CTkFrame(self, width=200, fg_color="#2e2e2e")
+        sidebar.pack(side="left", fill="y")
+
+        label = CTkLabel(sidebar, text="Home Page", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
-        dataBaseButton = CTkButton(self, text="View Database", font=("Arial", 20),
-                            command=lambda: controller.showFrame("databasePage"))
-        dataBaseButton.pack(pady=100)
-        equipButton = CTkButton(self, text="View Cadet Equipment", font=("Arial", 20),
-                            command=lambda: controller.showFrame("equipmentPage"))
-        equipButton.pack(pady=100)
-        reportButton = CTkButton(self, text="Generate Report", font=("Arial", 20),
-                            command=lambda: controller.showFrame("reportPage"))
-        reportButton.pack(pady=100)
+        dataBaseButton = CTkButton(sidebar, text="View Database", font=("Arial", 16),
+                                   command=lambda: controller.showFrame("databasePage"))
+        dataBaseButton.pack(pady=20)
+        equipButton = CTkButton(sidebar, text="View Cadet Equipment", font=("Arial", 16),
+                                command=lambda: controller.showFrame("equipmentPage"))
+        equipButton.pack(pady=20)
+        reportButton = CTkButton(sidebar, text="Generate Report", font=("Arial", 16),
+                                 command=lambda: controller.showFrame("reportPage"))
+        reportButton.pack(pady=20)
 
-        self.my_frame = self.MyFrame(self)
-        self.my_frame.place(relx=1.0, rely=0.5, anchor="e")
+        # Main content area
+        content = CTkFrame(self, fg_color="transparent")
+        content.pack(side="left", fill="both", expand=True)
+
+        self.my_frame = self.notifFrame(content)
+        self.my_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
         self.my_frame.pack_propagate(False)
 
-    class MyFrame(CTkScrollableFrame):
+    class notifFrame(CTkScrollableFrame):
         def __init__(self, parent):
-            super().__init__(parent)
+            super().__init__(parent, width=800, height=600)
 
-            # add widgets onto the frame...
-            for i in range(20):
-                label = CTkLabel(self, text=f"Item {i + 1}")
+            # Add dummy widgets
+            for i in range(50):
+                label = CTkLabel(self, text=f"Item {i + 1}", font=("Arial", 16))
                 label.pack(pady=5)
+
 
 
 # Database Page
 class databasePage(CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        label = CTkLabel(self, text="Database", font=("Arial", 20))
+
+        # Sidebar
+        sidebar = CTkFrame(self, width=200, fg_color="#2e2e2e")
+        sidebar.pack(side="left", fill="y")
+
+        label = CTkLabel(sidebar, text="Database", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
-        homeButton = CTkButton(self, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
         homeButton.pack(pady=10)
+
+        # Main content area
+        content = CTkFrame(self, fg_color="transparent")
+        content.pack(side="left", fill="both", expand=True)
 
 # Cadet Equipment Page
 class equipmentPage(CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        label = CTkLabel(self, text="Cadet Equipment", font=("Arial", 20))
+
+        # Sidebar
+        sidebar = CTkFrame(self, width=200, fg_color="#2e2e2e")
+        sidebar.pack(side="left", fill="y")
+
+        label = CTkLabel(self, text="Cadet Equipment", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
         homeButton = CTkButton(self, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
         homeButton.pack(pady=10)
+
+        # Main content area
+        content = CTkFrame(self, fg_color="transparent")
+        content.pack(side="left", fill="both", expand=True)
 
 # Report Page
 class reportPage(CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        label = CTkLabel(self, text="Report", font=("Arial", 20))
+
+        # Sidebar
+        sidebar = CTkFrame(self, width=200, fg_color="#2e2e2e")
+        sidebar.pack(side="left", fill="y")
+
+        label = CTkLabel(self, text="Report", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
         homeButton = CTkButton(self, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
         homeButton.pack(pady=10)
+
+        # Main content area
+        content = CTkFrame(self, fg_color="transparent")
+        content.pack(side="left", fill="both", expand=True)
 
 # establish application
 class QPAD(CTk):
@@ -87,6 +125,7 @@ class QPAD(CTk):
 
         self.showFrame("homePage")
 
+    # Frame Switcher
     def showFrame(self, pageName):
         frame = self.frames[pageName]
         frame.tkraise()
