@@ -1,13 +1,6 @@
 # import libraries
-import customtkinter
-from customtkinter import CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame
-import PIL
-from PIL import Image, ImageTk
-import tkinter as tk
+from customtkinter import CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame, CTkScrollableFrame
 
-# Set appearance parameters
-set_appearance_mode("system")
-set_default_color_theme("blue")
 
 # HomePage
 class homePage(CTkFrame):
@@ -16,12 +9,29 @@ class homePage(CTkFrame):
         label = CTkLabel(self, text="Home Page", font=("Arial", 20))
         label.pack(pady=20)
 
-        CTkButton(self, text="View Database", font=("Arial", 20),
-                  command=lambda: controller.showFrame("databasePage")).pack(pady=100)
-        CTkButton(self, text="View Cadet Equipment", font=("Arial", 20),
-                  command=lambda: controller.showFrame("equipmentPage")).pack(pady=100)
-        CTkButton(self, text="Generate Report", font=("Arial", 20),
-                  command=lambda: controller.showFrame("reportPage")).pack(pady=100)
+        dataBaseButton = CTkButton(self, text="View Database", font=("Arial", 20),
+                            command=lambda: controller.showFrame("databasePage"))
+        dataBaseButton.pack(pady=100)
+        equipButton = CTkButton(self, text="View Cadet Equipment", font=("Arial", 20),
+                            command=lambda: controller.showFrame("equipmentPage"))
+        equipButton.pack(pady=100)
+        reportButton = CTkButton(self, text="Generate Report", font=("Arial", 20),
+                            command=lambda: controller.showFrame("reportPage"))
+        reportButton.pack(pady=100)
+
+        self.my_frame = self.MyFrame(self)
+        self.my_frame.place(relx=1.0, rely=0.5, anchor="e")
+        self.my_frame.pack_propagate(False)
+
+    class MyFrame(CTkScrollableFrame):
+        def __init__(self, parent):
+            super().__init__(parent)
+
+            # add widgets onto the frame...
+            for i in range(20):
+                label = CTkLabel(self, text=f"Item {i + 1}")
+                label.pack(pady=5)
+
 
 # Database Page
 class databasePage(CTkFrame):
@@ -30,8 +40,8 @@ class databasePage(CTkFrame):
         label = CTkLabel(self, text="Database", font=("Arial", 20))
         label.pack(pady=20)
 
-        CTKButton = CTkButton(self, text="Home", font=("Arial", 20),
-                              command=lambda: controller.showFrame("homePage")).pack(pady=10)
+        homeButton = CTkButton(self, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton.pack(pady=10)
 
 # Cadet Equipment Page
 class equipmentPage(CTkFrame):
@@ -40,8 +50,8 @@ class equipmentPage(CTkFrame):
         label = CTkLabel(self, text="Cadet Equipment", font=("Arial", 20))
         label.pack(pady=20)
 
-        CTKButton = CTkButton(self, text="Home", font=("Arial", 20),
-                              command=lambda: controller.showFrame("homePage")).pack(pady=10)
+        homeButton = CTkButton(self, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton.pack(pady=10)
 
 # Report Page
 class reportPage(CTkFrame):
@@ -50,8 +60,8 @@ class reportPage(CTkFrame):
         label = CTkLabel(self, text="Report", font=("Arial", 20))
         label.pack(pady=20)
 
-        CTKButton = CTkButton(self, text="Home", font=("Arial", 20),
-                              command=lambda: controller.showFrame("homePage")).pack(pady=10)
+        homeButton = CTkButton(self, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton.pack(pady=10)
 
 # establish application
 class QPAD(CTk):
@@ -59,6 +69,10 @@ class QPAD(CTk):
         super().__init__()
         self.title("Q-PAD")
         self.geometry("1200x700")
+
+        # Set appearance parameters
+        set_appearance_mode("system")
+        set_default_color_theme("blue")
 
         self.container = CTkFrame(self)
         self.container.pack(fill="both", expand=True)
