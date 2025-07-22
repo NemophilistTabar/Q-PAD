@@ -63,7 +63,8 @@ class databasePage(CTkFrame):
         label = CTkLabel(sidebar, text="Database", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
-        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda:
+                                                            controller.showFrame("homePage"))
         homeButton.pack(pady=10)
 
         logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s")
@@ -85,7 +86,8 @@ class equipmentPage(CTkFrame):
         label = CTkLabel(sidebar, text="Cadet Equipment", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
-        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda:
+                                                            controller.showFrame("homePage"))
         homeButton.pack(pady=10)
 
         logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s")
@@ -107,7 +109,8 @@ class reportPage(CTkFrame):
         label = CTkLabel(sidebar, text="Report", font=("Arial", 20)) # Page Title
         label.pack(pady=20)
 
-        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda: controller.showFrame("homePage"))
+        homeButton = CTkButton(sidebar, text="Home", font=("Arial", 20), command=lambda:
+                                                            controller.showFrame("homePage"))
         homeButton.pack(pady=10)
 
         logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s") # Braemar Collage Cadets Logo
