@@ -67,7 +67,7 @@ class databasePage(CTkFrame):
                                                             controller.showFrame("homePage"))
         homeButton.pack(pady=10)
 
-        logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s")
+        logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s") # Braemar Collage Cadets Logo
         logo_label.pack(side="bottom", pady=10)
 
         # Main content area
@@ -90,7 +90,7 @@ class equipmentPage(CTkFrame):
                                                             controller.showFrame("homePage"))
         homeButton.pack(pady=10)
 
-        logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s")
+        logo_label = CTkLabel(sidebar, image=controller.shared_image, text="", anchor="s") # Braemar Collage Cadets Logo
         logo_label.pack(side="bottom", pady=10)
 
         # Main content area
