@@ -1,4 +1,3 @@
-Q-PAD serves the primary function of simplifying the stock take and issuing processes of Q-store to provide an intuitive and effective way of tracking the movement of equipment. 
 
 -- **Functions** --
 
