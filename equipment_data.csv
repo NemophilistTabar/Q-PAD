@@ -1,3 +1,2 @@
-Item Name,ID No.,Stock QTY,Issued QTY,Item Description
-spear,6400,12,3,longinus
-bush,2232,3,12,iu
+Item Name,Size,ID No.,Stock QTY,Issued QTY,Item Description
+wales,L,7559,123,2,222

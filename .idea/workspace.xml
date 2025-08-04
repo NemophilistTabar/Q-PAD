@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ef2092b3-7757-4630-9b51-e6882d88a340" name="Changes" comment="small modifications and tweaks">
+    <list default="true" id="ef2092b3-7757-4630-9b51-e6882d88a340" name="Changes" comment="added Database Functionality">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/equipment_data.csv" beforeDir="false" afterPath="$PROJECT_DIR$/equipment_data.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,19 +36,9 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/Q-PAD.py" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Q-PAD.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProblemsViewState">
-    <hideBySeverity>
-      <option value="11" />
-      <option value="12" />
-      <option value="13" />
-      <option value="14" />
-      <option value="15" />
-      <option value="16" />
-      <option value="200" />
-      <option value="300" />
-    </hideBySeverity>
     <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
@@ -71,6 +62,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -99,6 +91,15 @@
       <workItem from="1750238409539" duration="2669000" />
       <workItem from="1750286426783" duration="2680000" />
       <workItem from="1750824336947" duration="17651000" />
+      <workItem from="1751770902969" duration="1250000" />
+      <workItem from="1753052349949" duration="8039000" />
+      <workItem from="1753070089956" duration="5901000" />
+      <workItem from="1753157603132" duration="613000" />
+      <workItem from="1753224781319" duration="27000" />
+      <workItem from="1753245581345" duration="15479000" />
+      <workItem from="1753668068708" duration="88000" />
+      <workItem from="1754009923689" duration="90000" />
+      <workItem from="1754014573109" duration="46000" />
     </task>
     <task id="LOCAL-00001" summary="vcvvsfd">
       <option name="closed" value="true" />
@@ -156,7 +157,79 @@
       <option name="project" value="LOCAL" />
       <updated>1750914975153</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="small modifications and tweaks">
+      <option name="closed" value="true" />
+      <created>1751770911901</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1751770911901</updated>
+    </task>
+    <task id="LOCAL-00009" summary="small modifications and tweaks">
+      <option name="closed" value="true" />
+      <created>1753067733079</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1753067733079</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Added Sidebar and main content area into each page">
+      <option name="closed" value="true" />
+      <created>1753139635617</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1753139635617</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Added Logo to each page">
+      <option name="closed" value="true" />
+      <created>1753141342127</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1753141342127</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Added Logo to each page">
+      <option name="closed" value="true" />
+      <created>1753141512026</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1753141512026</updated>
+    </task>
+    <task id="LOCAL-00013" summary="fixed readabilities">
+      <option name="closed" value="true" />
+      <created>1753142591676</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1753142591676</updated>
+    </task>
+    <task id="LOCAL-00014" summary="fixed readabilitiy of code">
+      <option name="closed" value="true" />
+      <created>1753142711651</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1753142711651</updated>
+    </task>
+    <task id="LOCAL-00015" summary="streamlined sidebar to minimise copy paste">
+      <option name="closed" value="true" />
+      <created>1753333836008</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1753333836008</updated>
+    </task>
+    <task id="LOCAL-00016" summary="added Database Functionality">
+      <option name="closed" value="true" />
+      <created>1753668106430</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1753668106430</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -177,11 +250,17 @@
     <MESSAGE value="vcvvsfd" />
     <MESSAGE value="The True Pinicle of Tech" />
     <MESSAGE value="small modifications and tweaks" />
-    <option name="LAST_COMMIT_MESSAGE" value="small modifications and tweaks" />
+    <MESSAGE value="Added Sidebar and main content area into each page" />
+    <MESSAGE value="Added Logo to each page" />
+    <MESSAGE value="fixed readabilities" />
+    <MESSAGE value="fixed readabilitiy of code" />
+    <MESSAGE value="streamlined sidebar to minimise copy paste" />
+    <MESSAGE value="added Database Functionality" />
+    <option name="LAST_COMMIT_MESSAGE" value="added Database Functionality" />
     <option name="LAST_CHUNK_COMMIT_MESSAGE" value="comment change" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/PythonProject$Q_PAD.coverage" NAME="Q-PAD Coverage Results" MODIFIED="1750240971049" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Q_PAD$Q_PAD.coverage" NAME="Q-PAD Coverage Results" MODIFIED="1750990348180" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Q_PAD$Q_PAD.coverage" NAME="Q-PAD Coverage Results" MODIFIED="1754009935545" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

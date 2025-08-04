@@ -57,34 +57,50 @@ class databasePage(CTkFrame):
         content.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
         # === Top Section ===
-        top_frame = CTkFrame(content)
-        top_frame.pack(fill="x", pady=(0, 10))
+        self.top_frame = CTkFrame(content)
+        self.top_frame.pack(fill="x", pady=(0, 10))
 
         # Left: Image of item
-        self.image_label = CTkLabel(top_frame, text="", width=150, height=150, corner_radius=5)
+        self.image_label = CTkLabel(self.top_frame, text="", width=150, height=150, corner_radius=5)
         self.image_label.pack(side="left", padx=10)
 
         # Center: Item Info
-        item_info_frame = CTkFrame(top_frame)
-        item_info_frame.pack(side="left", padx=10, pady=10)
+        self.item_info_frame = CTkFrame(self.top_frame)
+        self.item_info_frame.pack(side="left", padx=10, pady=10)
 
-        CTkLabel(item_info_frame, text="Bushhat", font=("Arial", 16)).pack(anchor="w")
-        CTkLabel(item_info_frame, text="ID No.: 0001").pack(anchor="w")
-        CTkLabel(item_info_frame, text="Stock Qty.: 12").pack(anchor="w")
-        CTkLabel(item_info_frame, text="Issued Qty.: 5").pack(anchor="w")
+        # Right: Cadets Issued - create once as an attribute (optional)
+        self.issued_to_frame = CTkFrame(self.top_frame)
+        self.issued_to_frame.pack(side="left", padx=10, pady=10)
+        CTkLabel(self.issued_to_frame, text="Cadets Issued:", font=("Arial", 16)).pack(anchor="w")
 
-        # Right: Cadets Issued
-        issued_to_frame = CTkFrame(top_frame)
-        issued_to_frame.pack(side="left", padx=10, pady=10)
+        # equipment table (scrollable)
+        self.table_frame = CTkScrollableFrame(content)
+        self.table_frame.pack(fill="both", expand=True, pady=10)
 
-        CTkLabel(issued_to_frame, text="Cadets Issued:", font=("Arial", 16)).pack(anchor="w")
+    def update_item_details(self, item):
+        # Update item info
+        for widget in self.item_info_frame.winfo_children():
+            widget.destroy()
+
+        CTkLabel(self.item_info_frame, text=item["Item Name"], font=("Arial", 16)).pack(anchor="w")
+        CTkLabel(self.item_info_frame, text=f"ID No.: {item['ID No.']}").pack(anchor="w")
+        CTkLabel(self.item_info_frame, text=f"Size: {item['Size']}").pack(anchor="w")
+        CTkLabel(self.item_info_frame, text=f"Stock Qty.: {item['Stock QTY']}").pack(anchor="w")
+        CTkLabel(self.item_info_frame, text=f"Issued Qty.: {item['Issued QTY']}").pack(anchor="w")
+        CTkLabel(self.item_info_frame, text=item["Item Description"]).pack(anchor="w")
+
+        # Update issued cadets list (clear and repopulate)
+        for widget in self.issued_to_frame.winfo_children():
+            if isinstance(widget, CTkLabel) and widget.cget("text") != "Cadets Issued:":
+                widget.destroy()
+
         for name in ["Larry", "Bill", "Fred", "Jess", "Frank"]:
-            CTkLabel(issued_to_frame, text=name).pack(anchor="w")
+            CTkLabel(self.issued_to_frame, text=name).pack(anchor="w")
 
         content = CTkFrame(self, fg_color="transparent")
         content.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
-        # This is where your equipment table will be shown
+        # equipment table
         self.table_frame = CTkScrollableFrame(content)
         self.table_frame.pack(fill="both", expand=True, pady=10)
 
@@ -250,28 +266,33 @@ class QPAD(CTk):
         self.equipment_df.to_csv("equipment_data.csv", index=False)
 
     def populate_table(self, df):
-        # Assume databasePage has attribute table_frame (a CTkScrollableFrame)
         table_frame = self.database_table_container.table_frame
 
-        # Clear old widgets
         for widget in table_frame.winfo_children():
             widget.destroy()
 
+        # Define column display order
+        display_columns = ["Item Name", "Size", "Stock QTY", "Issued QTY", "Item Description"]
+
         # Headers
-        headers = list(df.columns)
-        for col, header in enumerate(headers):
-            CTkLabel(table_frame, text=header, font=("Arial", 14, "bold")).grid(row=0, column=col, padx=10, pady=5)
+        for col, header in enumerate(display_columns):
+            CTkLabel(table_frame, text=header, font=("Arial", 14, "bold")).grid(row=0, column=col, padx=10, pady=5,
+                                                                                sticky="w")
 
         # Rows
         for row_index, row in df.iterrows():
-            for col_index, col in enumerate(headers):
-                CTkLabel(table_frame, text=str(row[col]), font=("Arial", 12)).grid(row=row_index + 1, column=col_index,
-                                                                                   padx=10, pady=2)
+            for col_index, col in enumerate(display_columns):
+                label = CTkLabel(table_frame, text=str(row[col]), font=("Arial", 12))
+                label.grid(row=row_index + 1, column=col_index, padx=10, pady=2, sticky="w")
+                label.bind("<Button-1>", lambda e, item=row: self.database_table_container.update_item_details(item))
 
     # Frame Switcher
     def showFrame(self, pageName):
         frame = self.frames[pageName]
         frame.tkraise()
+
+        if pageName == "databasePage":
+            self.populate_table(self.equipment_df)
 
 if __name__ == "__main__":
     app = QPAD()
