@@ -89,34 +89,70 @@ class databasePage(CTkFrame):
             CTkLabel(self.issued_to_frame, text=name).pack(anchor="w")
 
     def issue_equipment(self):
+        from customtkinter import CTkComboBox, CTkCheckBox
+
         window = CTkToplevel(self)
         window.title("Issue Equipment")
-        window.geometry("300x200")
+        window.geometry("400x500")
         window.grab_set()
 
-        CTkLabel(window, text="Cadet ID:").pack(pady=(10, 0))
-        cadet_entry = CTkEntry(window)
-        cadet_entry.pack(pady=(0, 10))
+        # Load cadet list
+        cadet_names = self.controller.cadet_df["Cadet Name"].astype(str).tolist()
+        cadet_ids = self.controller.cadet_df["ID No."].tolist()
+        cadet_name_id_map = dict(zip(cadet_names, cadet_ids))
 
-        CTkLabel(window, text="Item ID No.:").pack(pady=(10, 0))
-        item_entry = CTkEntry(window)
-        item_entry.pack(pady=(0, 10))
+        # Cadet dropdown
+        CTkLabel(window, text="Select Cadet:").pack(pady=(10, 0))
+        cadet_combo = CTkComboBox(window, values=cadet_names)
+        cadet_combo.pack(pady=(0, 10))
 
+        # Equipment checklist
+        CTkLabel(window, text="Select Equipment to Issue:").pack(pady=(10, 0))
+        checklist_frame = CTkScrollableFrame(window, width=350, height=300)
+        checklist_frame.pack(pady=(0, 10), padx=10, fill="both", expand=True)
+
+        equipment_checks = []
+        for _, row in self.controller.equipment_df.iterrows():
+            item_id = row["ID No."]
+            label = f"{row['Item Name']} (ID: {item_id})"
+            var = CTkCheckBox(checklist_frame, text=label)
+            var.pack(anchor="w", padx=10, pady=2)
+            equipment_checks.append((var, item_id))
+
+        # Assign logic
         def assign():
-            cadet_id = cadet_entry.get()
-            item_id = item_entry.get()
+            selected_name = cadet_combo.get()
+            if not selected_name:
+                print("No cadet selected.")
+                return
+
+            cadet_id = cadet_name_id_map[selected_name]
             df = self.controller.equipment_df
             cadet_df = self.controller.cadet_df
 
-            if item_id in df["ID No."].astype(str).values:
-                df.loc[df["ID No."] == item_id, "Issued QTY"] += 1
-                new_row = {"Cadet ID": cadet_id, "ID No.": item_id}
-                cadet_df.loc[len(cadet_df)] = new_row
-                self.controller.save_dataframe()
-                self.controller.populate_table(df)
-                window.destroy()
-            else:
-                print("Invalid ID No.")
+            selected_items = [item_id for chk, item_id in equipment_checks if chk.get() == 1]
+
+            if not selected_items:
+                print("No equipment selected.")
+                return
+
+            for item_id in selected_items:
+                if df["Stock QTY"] != 0:
+                    df["ID No."] = df["ID No."].astype(str)
+                    df.loc[df["ID No."] == str(item_id), "Issued QTY"] = (
+                            df.loc[df["ID No."] == str(item_id), "Issued QTY"] + 1)
+                    df.loc[df["ID No."] == str(item_id), "Issued QTY"] = (
+                            df.loc[df["ID No."] == str(item_id), "Stock QTY"] - 1)
+                else:
+                    print("you cannot issue unstocked items")
+
+                # Log issued item
+                new_row = {"Cadet ID": cadet_id, "ID No.": str(item_id)}
+                self.controller.cadet_equip_df.loc[len(self.controller.cadet_equip_df)] = new_row
+
+            self.controller.save_dataframe()
+            self.controller.populate_table(df)
+            window.destroy()
 
         CTkButton(window, text="Assign", command=assign).pack(pady=10)
 
@@ -162,9 +198,9 @@ class databasePage(CTkFrame):
                     "Item Description": entries["Item Description"].get()
                 }
 
-                self.controller.cadet_df.loc[len(self.controller.cadet_df)] = new_row
+                self.controller.equipment_df.loc[len(self.controller.equipment_df)] = new_row
                 self.controller.save_dataframe()
-                self.controller.populate_table(self.controller.cadet_df)
+                self.controller.populate_table(self.controller.equipment_df)
                 window.destroy()
             except ValueError:
                 print("Invalid input.")
@@ -189,6 +225,9 @@ class equipmentPage(CTkFrame):
         content = CTkFrame(self, fg_color="transparent")
         content.pack(side="left", fill="both", expand=True)
 
+        self.table_frame = CTkScrollableFrame(content)
+        self.table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
     def add_Cadet(self):
         print("Add Cadet clicked")  # Check if this prints
         try:
@@ -201,10 +240,18 @@ class equipmentPage(CTkFrame):
             name_entry = CTkEntry(window)
             name_entry.pack(pady=(0, 10))
 
+            def generate_cadet_id():
+                existing_ids = set(self.controller.cadet_df["ID No."].astype(str))
+                while True:
+                    new_id = f"C{random.randint(1000, 9999)}"
+                    if new_id not in existing_ids:
+                        return new_id
+
             def submit():
                 try:
                     new_row = {
-                        "Name": name_entry.get(),
+                        "Cadet Name": name_entry.get(),
+                        "ID No.": generate_cadet_id()
                     }
 
                     self.controller.cadet_df.loc[len(self.controller.cadet_df)] = new_row
@@ -255,6 +302,7 @@ class Sidebar(CTkFrame):
 class QPAD(CTk):
     def __init__(self):
         super().__init__()
+
         self.title("Q-PAD")
         self.geometry("1200x700")
 
@@ -269,15 +317,20 @@ class QPAD(CTk):
             self.shared_image = None
 
         eq_path = "equipment_data.csv"
-        cadet_path = "cadet_equipment.csv"
+        cadet_path = "cadet_data.csv"
+        cadet_equip_path = "cadet_equipment.csv"
 
         self.equipment_df = pd.read_csv(eq_path) if os.path.exists(eq_path) else pd.DataFrame(
             columns=["Item Name", "Size", "ID No.", "Stock QTY", "Issued QTY", "Item Description"])
         self.equipment_df.to_csv(eq_path, index=False)
 
         self.cadet_df = pd.read_csv(cadet_path) if os.path.exists(cadet_path) else pd.DataFrame(
-            columns=["Cadet ID", "ID No."])
+            columns=["Cadet Name", "ID No."])
         self.cadet_df.to_csv(cadet_path, index=False)
+
+        self.cadet_equip_df = pd.read_csv(cadet_equip_path) if os.path.exists(cadet_equip_path) else pd.DataFrame(
+            columns=["ID No.", "Cadet IDs"])
+        self.cadet_equip_df.to_csv(cadet_equip_path, index=False)
 
         self.container = CTkFrame(self)
         self.container.pack(fill="both", expand=True)
@@ -290,12 +343,15 @@ class QPAD(CTk):
             frame.grid(row=0, column=0, sticky="nsew")
             if name == "databasePage":
                 self.database_table_container = frame
+            elif name == "equipmentPage":
+                self.equipment_table_container = frame
 
         self.showFrame("homePage")
 
     def save_dataframe(self):
         self.equipment_df.to_csv("equipment_data.csv", index=False)
-        self.cadet_df.to_csv("cadet_equipment.csv", index=False)
+        self.cadet_df.to_csv("cadet_data.csv", index=False)
+        self.cadet_equip_df.to_csv("cadet_equipment.csv", index=False)
 
     def populate_table(self, df):
         table_frame = self.database_table_container.table_frame
@@ -316,13 +372,19 @@ class QPAD(CTk):
                 label.bind("<Button-1>", lambda e, item=row: self.database_table_container.update_item_details(item))
 
     def populate_cadet_table(self, df):
-        self.clear_table_frame()
+        table_frame = self.equipment_table_container.table_frame
+        for widget in table_frame.winfo_children():
+            widget.destroy()
 
         columns = df.columns.tolist()
-        for i, (_, row) in enumerate(df.iterrows()):
-            for j, col in enumerate(columns):
-                label = CTkLabel(self.database_table_container.table_frame, text=str(row[col]), font=("Arial", 12))
-                label.grid(row=i, column=j, padx=5, pady=2)
+        for col_index, col_name in enumerate(columns):
+            CTkLabel(table_frame, text=col_name, font=("Arial", 14, "bold")).grid(row=0, column=col_index, padx=10,
+                                                                                  pady=5, sticky="w")
+
+        for row_index, (_, row) in enumerate(df.iterrows()):
+            for col_index, col_name in enumerate(columns):
+                label = CTkLabel(table_frame, text=str(row[col_name]), font=("Arial", 12))
+                label.grid(row=row_index + 1, column=col_index, padx=10, pady=2, sticky="w")
 
     def showFrame(self, pageName):
         frame = self.frames[pageName]
