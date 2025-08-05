@@ -137,18 +137,21 @@ class databasePage(CTkFrame):
                 return
 
             for item_id in selected_items:
-                if df["Stock QTY"] != 0:
-                    df["ID No."] = df["ID No."].astype(str)
-                    df.loc[df["ID No."] == str(item_id), "Issued QTY"] = (
-                            df.loc[df["ID No."] == str(item_id), "Issued QTY"] + 1)
-                    df.loc[df["ID No."] == str(item_id), "Issued QTY"] = (
-                            df.loc[df["ID No."] == str(item_id), "Stock QTY"] - 1)
-                else:
-                    print("you cannot issue unstocked items")
+                matching_rows = df[df["ID No."].astype(str) == str(item_id)]
 
-                # Log issued item
-                new_row = {"Cadet ID": cadet_id, "ID No.": str(item_id)}
-                self.controller.cadet_equip_df.loc[len(self.controller.cadet_equip_df)] = new_row
+                if not matching_rows.empty:
+                    stock_qty = matching_rows["Stock QTY"].values[0]
+                    if stock_qty > 0:
+                        df.loc[df["ID No."].astype(str) == str(item_id), "Issued QTY"] += 1
+                        df.loc[df["ID No."].astype(str) == str(item_id), "Stock QTY"] -= 1
+
+                        # Log issued item
+                        new_row = {"Cadet IDs": cadet_id, "ID No.": str(item_id)}
+                        self.controller.cadet_equip_df.loc[len(self.controller.cadet_equip_df)] = new_row
+                    else:
+                        print(f"Item {item_id} has no stock left.")
+                else:
+                    print(f"Item ID {item_id} not found in equipment_df.")
 
             self.controller.save_dataframe()
             self.controller.populate_table(df)
@@ -222,11 +225,58 @@ class equipmentPage(CTkFrame):
              ("Add Cadet", self.add_Cadet)
         ])
 
-        content = CTkFrame(self, fg_color="transparent")
-        content.pack(side="left", fill="both", expand=True)
+        self.cadet_df = self.controller.cadet_df
+        self.equipment_df = self.controller.equipment_df
 
-        self.table_frame = CTkScrollableFrame(content)
+        self.contentleft = CTkFrame(self, fg_color="transparent")
+        self.contentleft.pack(side="left", fill="both", expand=True)
+
+        self.table_frame = CTkScrollableFrame(self.contentleft)
         self.table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.contentright = CTkFrame(self, fg_color="transparent")
+        self.contentright.pack(side="right", fill="both", expand=True)
+
+        self.equipment_display = CTkScrollableFrame(self.contentright)
+        self.equipment_display.pack(fill="both", expand=True)
+
+    # NEW method to refresh the cadet list and clear equipment display
+    def refresh(self):
+        for widget in self.table_frame.winfo_children():
+            widget.destroy()
+        self.display_cadet_list()
+        for widget in self.equipment_display.winfo_children():
+            widget.destroy()
+
+    def display_cadet_list(self):
+        CTkLabel(self.table_frame, text="Cadets:", font=("Arial", 16, "bold")).pack(anchor="w", padx=10, pady=5)
+
+        for index, row in self.cadet_df.iterrows():
+            label = CTkLabel(self.table_frame, text=row["Cadet Name"], cursor="hand2")
+            label.pack(pady=2, padx=10, anchor="w")
+            cadet_id = row["ID No."]
+            label.bind("<Button-1>", lambda e, cid=cadet_id: self.show_cadet_equipment(cid))
+
+    def show_cadet_equipment(self, cadet_id):
+        for widget in self.equipment_display.winfo_children():
+            widget.destroy()
+
+        assigned_ids = self.controller.cadet_equip_df[
+            self.controller.cadet_equip_df["Cadet IDs"] == cadet_id
+        ]["ID No."].tolist()
+
+        if not assigned_ids:
+            CTkLabel(self.equipment_display, text="No equipment assigned.").pack(anchor="w", padx=10, pady=5)
+            return
+
+        CTkLabel(self.equipment_display, text="Assigned Equipment:", font=("Arial", 16, "bold")).pack(anchor="w", padx=10, pady=5)
+
+        for item_id in assigned_ids:
+            item = self.controller.equipment_df[self.controller.equipment_df["ID No."].astype(str) == str(item_id)]
+            if not item.empty:
+                item = item.iloc[0]
+                text = f"{item['Item Name']} (ID: {item['ID No.']}) - Size: {item['Size']}"
+                CTkLabel(self.equipment_display, text=text).pack(anchor="w", padx=10, pady=2)
 
     def add_Cadet(self):
         print("Add Cadet clicked")  # Check if this prints
@@ -391,6 +441,8 @@ class QPAD(CTk):
         frame.tkraise()
         if pageName == "databasePage":
             self.populate_table(self.equipment_df)
+        elif pageName == "equipmentPage":
+            self.frames["equipmentPage"].refresh()
 
 
 if __name__ == "__main__":
