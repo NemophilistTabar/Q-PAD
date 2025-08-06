@@ -5,9 +5,7 @@ import pandas as pd
 from PIL import Image
 from customtkinter import (
     CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame,
-    CTkScrollableFrame, CTkImage, CTkToplevel, CTkEntry
-)
-
+    CTkScrollableFrame, CTkImage, CTkToplevel, CTkEntry, CTkComboBox)
 
 # HomePage
 class homePage(CTkFrame):
@@ -89,12 +87,12 @@ class databasePage(CTkFrame):
             CTkLabel(self.issued_to_frame, text=name).pack(anchor="w")
 
     def issue_equipment(self):
-        from customtkinter import CTkComboBox, CTkCheckBox
+        top = CTkToplevel(self)
+        top.title("Issue Equipment")
+        top.geometry("600x600")
 
-        window = CTkToplevel(self)
-        window.title("Issue Equipment")
-        window.geometry("400x500")
-        window.grab_set()
+        title_label = CTkLabel(top, text="Issue Equipment", font=("Arial", 20))
+        title_label.pack(pady=10)
 
         # Load cadet list
         cadet_names = self.controller.cadet_df["Cadet Name"].astype(str).tolist()
@@ -102,62 +100,103 @@ class databasePage(CTkFrame):
         cadet_name_id_map = dict(zip(cadet_names, cadet_ids))
 
         # Cadet dropdown
-        CTkLabel(window, text="Select Cadet:").pack(pady=(10, 0))
-        cadet_combo = CTkComboBox(window, values=cadet_names)
-        cadet_combo.pack(pady=(0, 10))
+        CTkLabel(top, text="Select Cadet:").pack(pady=(10, 0))
+        cadet_id_entry = CTkComboBox(top, values=cadet_names)
+        cadet_id_entry.pack(pady=(0, 10))
 
-        # Equipment checklist
-        CTkLabel(window, text="Select Equipment to Issue:").pack(pady=(10, 0))
-        checklist_frame = CTkScrollableFrame(window, width=350, height=300)
-        checklist_frame.pack(pady=(0, 10), padx=10, fill="both", expand=True)
+        # Search bar
+        search_frame = CTkFrame(top)
+        search_frame.pack(pady=5)
+        search_entry = CTkEntry(search_frame, placeholder_text="Search by name or ID...")
+        search_entry.pack(side="left", padx=(0, 10))
+        search_button = CTkButton(search_frame, text="Search")
+        search_button.pack(side="left")
 
-        equipment_checks = []
-        for _, row in self.controller.equipment_df.iterrows():
-            item_id = row["ID No."]
-            label = f"{row['Item Name']} (ID: {item_id})"
-            var = CTkCheckBox(checklist_frame, text=label)
-            var.pack(anchor="w", padx=10, pady=2)
-            equipment_checks.append((var, item_id))
+        checklist_frame = CTkScrollableFrame(top, width=500, height=400)
+        checklist_frame.pack(pady=10)
 
-        # Assign logic
+        # Build UI entries
+        equipment_entries = []
+
+        def populate_equipment_list(filter_query=""):
+            for widget in checklist_frame.winfo_children():
+                widget.destroy()
+            equipment_entries.clear()
+
+            for _, row in self.controller.equipment_df.iterrows():
+                item_id = str(row["ID No."])
+                item_name = str(row["Item Name"])
+
+                if filter_query and (filter_query not in item_name.lower() and filter_query not in item_id.lower()):
+                    continue
+
+                row_frame = CTkFrame(checklist_frame)
+                row_frame.pack(fill="x", pady=2, padx=10)
+
+                label = CTkLabel(row_frame, text=f"{item_name} (ID: {item_id})")
+                label.pack(side="left", padx=(0, 10))
+
+                qty_entry = CTkEntry(row_frame, width=50, placeholder_text="0")
+                qty_entry.pack(side="left")
+
+                equipment_entries.append((qty_entry, item_id))
+
+        def perform_search():
+            query = search_entry.get().lower().strip()
+            populate_equipment_list(query)
+
+        search_entry.bind("<KeyRelease>", lambda e: perform_search())
+
+        # Populate initially
+        populate_equipment_list()
+
         def assign():
-            selected_name = cadet_combo.get()
-            if not selected_name:
-                print("No cadet selected.")
+            cadet_id = cadet_id_entry.get()
+            if not cadet_id:
+                print("Cadet ID is required.")
                 return
 
-            cadet_id = cadet_name_id_map[selected_name]
             df = self.controller.equipment_df
-            cadet_df = self.controller.cadet_df
+            issued = []
 
-            selected_items = [item_id for chk, item_id in equipment_checks if chk.get() == 1]
+            for entry, item_id in equipment_entries:
+                try:
+                    qty = int(entry.get())
+                    if qty <= 0:
+                        continue
+                except ValueError:
+                    continue
 
-            if not selected_items:
-                print("No equipment selected.")
-                return
+                match = df[df["ID No."].astype(str) == str(item_id)]
+                if match.empty:
+                    print(f"Item ID {item_id} not found.")
+                    continue
 
-            for item_id in selected_items:
-                matching_rows = df[df["ID No."].astype(str) == str(item_id)]
+                stock_qty = int(match["Stock QTY"].values[0])
+                if stock_qty < qty:
+                    print(f"Not enough stock for Item {item_id}. Available: {stock_qty}, Requested: {qty}")
+                    continue
 
-                if not matching_rows.empty:
-                    stock_qty = matching_rows["Stock QTY"].values[0]
-                    if stock_qty > 0:
-                        df.loc[df["ID No."].astype(str) == str(item_id), "Issued QTY"] += 1
-                        df.loc[df["ID No."].astype(str) == str(item_id), "Stock QTY"] -= 1
+                df.loc[df["ID No."].astype(str) == str(item_id), "Issued QTY"] += qty
+                df.loc[df["ID No."].astype(str) == str(item_id), "Stock QTY"] -= qty
 
-                        # Log issued item
-                        new_row = {"Cadet IDs": cadet_id, "ID No.": str(item_id)}
-                        self.controller.cadet_equip_df.loc[len(self.controller.cadet_equip_df)] = new_row
-                    else:
-                        print(f"Item {item_id} has no stock left.")
-                else:
-                    print(f"Item ID {item_id} not found in equipment_df.")
+                for _ in range(qty):
+                    self.controller.cadet_equip_df.loc[len(self.controller.cadet_equip_df)] = {
+                        "Cadet ID": cadet_id,
+                        "ID No.": str(item_id)
+                    }
 
+                issued.append((item_id, qty))
+
+            self.controller.populate_table(self.controller.equipment_df)
             self.controller.save_dataframe()
-            self.controller.populate_table(df)
-            window.destroy()
+            top.destroy()
 
-        CTkButton(window, text="Assign", command=assign).pack(pady=10)
+            if issued:
+                print("Issued:", issued)
+
+        assign_button = CTkButton(top, text="Assign Equipment", command=assign)
+        assign_button.pack(pady=10)
 
     def return_equipment(self):
         print("Return Equipment")
@@ -262,7 +301,7 @@ class equipmentPage(CTkFrame):
             widget.destroy()
 
         assigned_ids = self.controller.cadet_equip_df[
-            self.controller.cadet_equip_df["Cadet IDs"] == cadet_id
+            self.controller.cadet_equip_df["Cadet ID"] == cadet_id
         ]["ID No."].tolist()
 
         if not assigned_ids:
@@ -443,7 +482,6 @@ class QPAD(CTk):
             self.populate_table(self.equipment_df)
         elif pageName == "equipmentPage":
             self.frames["equipmentPage"].refresh()
-
 
 if __name__ == "__main__":
     app = QPAD()
