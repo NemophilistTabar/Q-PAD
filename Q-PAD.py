@@ -3,6 +3,8 @@ import random
 import os
 import pandas as pd
 from PIL import Image
+from collections import Counter
+from datetime import datetime
 from customtkinter import (
     CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame,
     CTkScrollableFrame, CTkImage, CTkToplevel, CTkEntry, CTkComboBox)
@@ -32,7 +34,6 @@ class homePage(CTkFrame):
             super().__init__(parent, width=800, height=600)
             for i in range(50):
                 CTkLabel(self, text=f"Item {i + 1}", font=("Arial", 16)).pack(pady=5)
-
 
 # Database Page
 class databasePage(CTkFrame):
@@ -82,14 +83,14 @@ class databasePage(CTkFrame):
         # Show cadets issued this item
         item_id = item["ID No."]
         df = self.controller.cadet_df
-        issued_cadets = df[df["ID No."] == item_id]["Cadet ID"].tolist()
+        issued_cadets = df[df["ID No."] == item_id]["Cadet IDs"].tolist()
         for name in issued_cadets:
             CTkLabel(self.issued_to_frame, text=name).pack(anchor="w")
 
     def issue_equipment(self):
         top = CTkToplevel(self)
         top.title("Issue Equipment")
-        top.geometry("600x600")
+        top.geometry("800x800")
 
         title_label = CTkLabel(top, text="Issue Equipment", font=("Arial", 20))
         title_label.pack(pady=10)
@@ -117,8 +118,12 @@ class databasePage(CTkFrame):
 
         # Build UI entries
         equipment_entries = []
+        equipment_quantities = {}
 
         def populate_equipment_list(filter_query=""):
+            for (qty_entry, item_id_entry) in equipment_entries:
+                equipment_quantities[item_id_entry] = qty_entry.get()
+
             for widget in checklist_frame.winfo_children():
                 widget.destroy()
             equipment_entries.clear()
@@ -126,6 +131,7 @@ class databasePage(CTkFrame):
             for _, row in self.controller.equipment_df.iterrows():
                 item_id = str(row["ID No."])
                 item_name = str(row["Item Name"])
+                item_size = str(row["Size"])
 
                 if filter_query and (filter_query not in item_name.lower() and filter_query not in item_id.lower()):
                     continue
@@ -133,12 +139,20 @@ class databasePage(CTkFrame):
                 row_frame = CTkFrame(checklist_frame)
                 row_frame.pack(fill="x", pady=2, padx=10)
 
-                label = CTkLabel(row_frame, text=f"{item_name} (ID: {item_id})")
+                label = CTkLabel(row_frame, text=f"{item_name} (Size: {item_size})")
                 label.pack(side="left", padx=(0, 10))
 
                 qty_entry = CTkEntry(row_frame, width=50, placeholder_text="0")
                 qty_entry.pack(side="left")
 
+                # Restore Qty Values
+                if item_id in equipment_quantities:
+                    qty_entry.insert(0, equipment_quantities[item_id])
+
+                def on_entry_change(item, entry):
+                    equipment_quantities[item] = entry.get()
+
+                qty_entry.bind("<KeyRelease>", lambda e, item=item_id, entry=qty_entry: on_entry_change(item, entry))
                 equipment_entries.append((qty_entry, item_id))
 
         def perform_search():
@@ -146,22 +160,25 @@ class databasePage(CTkFrame):
             populate_equipment_list(query)
 
         search_entry.bind("<KeyRelease>", lambda e: perform_search())
-
-        # Populate initially
         populate_equipment_list()
 
         def assign():
-            cadet_id = cadet_id_entry.get()
+            cadet_name = cadet_id_entry.get()
+            if not cadet_name:
+                print("Cadet name is required.")
+                return
+
+            cadet_id = cadet_name_id_map.get(cadet_name)
             if not cadet_id:
-                print("Cadet ID is required.")
+                print("Cadet ID not found.")
                 return
 
             df = self.controller.equipment_df
             issued = []
 
-            for entry, item_id in equipment_entries:
+            for item_id, qty_str in equipment_quantities.items():
                 try:
-                    qty = int(entry.get())
+                    qty = int(qty_str)
                     if qty <= 0:
                         continue
                 except ValueError:
@@ -180,10 +197,13 @@ class databasePage(CTkFrame):
                 df.loc[df["ID No."].astype(str) == str(item_id), "Issued QTY"] += qty
                 df.loc[df["ID No."].astype(str) == str(item_id), "Stock QTY"] -= qty
 
+                date_issued = datetime.now().strftime("%Y-%m-%d")
+
                 for _ in range(qty):
                     self.controller.cadet_equip_df.loc[len(self.controller.cadet_equip_df)] = {
-                        "Cadet ID": cadet_id,
-                        "ID No.": str(item_id)
+                        "Cadet IDs": cadet_id,
+                        "ID No.": str(item_id),
+                        "Date Issued": date_issued
                     }
 
                 issued.append((item_id, qty))
@@ -197,26 +217,121 @@ class databasePage(CTkFrame):
 
         assign_button = CTkButton(top, text="Assign Equipment", command=assign)
         assign_button.pack(pady=10)
+        assign_button.lift()
 
     def return_equipment(self):
         top = CTkToplevel(self)
         top.title("Return Equipment")
-        top.geometry("600x600")
+        top.geometry("700x700")
 
         title_label = CTkLabel(top, text="Return Equipment", font=("Arial", 20))
         title_label.pack(pady=10)
 
-        # Load cadet list
+        # Convert IDs to string just in case (ensure consistent types)
+        self.controller.equipment_df["ID No."] = self.controller.equipment_df["ID No."].astype(str)
+        self.controller.cadet_equip_df["ID No."] = self.controller.cadet_equip_df["ID No."].astype(str)
+        self.controller.cadet_df["ID No."] = self.controller.cadet_df["ID No."].astype(str)
+
         cadet_names = self.controller.cadet_df["Cadet Name"].astype(str).tolist()
         cadet_ids = self.controller.cadet_df["ID No."].tolist()
         cadet_name_id_map = dict(zip(cadet_names, cadet_ids))
 
-        # Cadet dropdown
         CTkLabel(top, text="Select Cadet:").pack(pady=(10, 0))
-        cadet_id_entry = CTkComboBox(top, values=cadet_names)
-        cadet_id_entry.pack(pady=(0, 10))
+        cadet_combo = CTkComboBox(top, values=cadet_names)
+        cadet_combo.pack(pady=(0, 10))
 
+        checklist_frame = CTkScrollableFrame(top, width=600, height=400)
+        checklist_frame.pack(pady=10)
 
+        equipment_entries = {}
+
+        def populate_checklist():
+            cadet_name = cadet_combo.get()
+            cadet_id = cadet_name_id_map.get(cadet_name)
+
+            if not cadet_id:
+                return
+
+            for widget in checklist_frame.winfo_children():
+                widget.destroy()
+            equipment_entries.clear()
+
+            df = self.controller.cadet_equip_df.copy()
+
+            # Make sure both sides are strings
+            df["Cadet IDs"] = df["Cadet IDs"].astype(str)
+            cadet_id_str = str(cadet_id)
+
+            # Filter after checking for issued items
+            issued_df = df[df["Cadet IDs"] == cadet_id_str]
+
+            item_counts = Counter(issued_df["ID No."])
+
+            if not item_counts:
+                CTkLabel(checklist_frame, text="No equipment issued.").pack()
+                return
+
+            for item_id, count in item_counts.items():
+                item_row = self.controller.equipment_df[
+                    self.controller.equipment_df["ID No."] == item_id
+                    ]
+                if item_row.empty:
+                    continue
+
+                item = item_row.iloc[0]
+                item_name = item["Item Name"]
+                item_size = item["Size"]
+
+                row_frame = CTkFrame(checklist_frame)
+                row_frame.pack(fill="x", pady=5, padx=10)
+
+                label = CTkLabel(row_frame, text=f"{item_name} (Size: {item_size}) — x{count}")
+                label.pack(side="left", padx=5)
+
+                qty_entry = CTkEntry(row_frame, width=60, placeholder_text="0")
+                qty_entry.pack(side="left")
+
+                equipment_entries[item_id] = (qty_entry, count)
+
+        cadet_combo.bind("<<ComboboxSelected>>", lambda e: populate_checklist())
+
+        def process_return():
+            cadet_name = cadet_combo.get()
+            cadet_id = cadet_name_id_map.get(cadet_name)
+            if not cadet_id:
+                print("Invalid cadet selected.")
+                return
+
+            to_remove = []
+            for item_id, (entry, max_qty) in equipment_entries.items():
+                try:
+                    return_qty = int(entry.get())
+                    if return_qty <= 0:
+                        continue
+                    if return_qty > max_qty:
+                        print(f"Can't return more than issued: {item_id}")
+                        continue
+                except ValueError:
+                    continue
+
+                # Update equipment_df
+                df = self.controller.equipment_df
+                df.loc[df["ID No."] == item_id, "Issued QTY"] -= return_qty
+                df.loc[df["ID No."] == item_id, "Stock QTY"] += return_qty
+
+                # Remove rows from cadet_equip_df
+                issued_df = self.controller.cadet_equip_df
+                item_mask = (issued_df["Cadet IDs"] == cadet_id) & (issued_df["ID No."] == item_id)
+                item_indexes = issued_df[item_mask].index[:return_qty]
+                to_remove.extend(item_indexes)
+
+            self.controller.cadet_equip_df.drop(index=to_remove, inplace=True)
+            self.controller.save_dataframe()
+            self.controller.populate_table(self.controller.equipment_df)
+            top.destroy()
+            print("Return processed.")
+
+        CTkButton(top, text="Return Equipment", command=process_return).pack(pady=10)
 
     def add_equipment(self):
         window = CTkToplevel(self)
@@ -269,7 +384,6 @@ class databasePage(CTkFrame):
     def remove_equipment(self):
         print("Remove Equipment")
 
-
 # Cadet Equipment Page
 class equipmentPage(CTkFrame):
     def __init__(self, parent, controller):
@@ -296,7 +410,7 @@ class equipmentPage(CTkFrame):
         self.equipment_display = CTkScrollableFrame(self.contentright)
         self.equipment_display.pack(fill="both", expand=True)
 
-    # NEW method to refresh the cadet list and clear equipment display
+    # refresh the cadet list and clear equipment display
     def refresh(self):
         for widget in self.table_frame.winfo_children():
             widget.destroy()
@@ -318,7 +432,7 @@ class equipmentPage(CTkFrame):
             widget.destroy()
 
         assigned_ids = self.controller.cadet_equip_df[
-            self.controller.cadet_equip_df["Cadet ID"] == cadet_id
+            self.controller.cadet_equip_df["Cadet IDs"] == cadet_id
         ]["ID No."].tolist()
 
         if not assigned_ids:
@@ -327,15 +441,19 @@ class equipmentPage(CTkFrame):
 
         CTkLabel(self.equipment_display, text="Assigned Equipment:", font=("Arial", 16, "bold")).pack(anchor="w", padx=10, pady=5)
 
-        for item_id in assigned_ids:
+        item_counts = Counter(assigned_ids)
+
+        for item_id, count in item_counts.items():
             item = self.controller.equipment_df[self.controller.equipment_df["ID No."].astype(str) == str(item_id)]
             if not item.empty:
                 item = item.iloc[0]
                 text = f"{item['Item Name']} (ID: {item['ID No.']}) - Size: {item['Size']}"
+                if count > 1:
+                    text += f" — x{count}"
                 CTkLabel(self.equipment_display, text=text).pack(anchor="w", padx=10, pady=2)
 
     def add_Cadet(self):
-        print("Add Cadet clicked")  # Check if this prints
+        print("Add Cadet clicked")
         try:
             window = CTkToplevel(self)
             window.title("Add New Cadet")
@@ -371,7 +489,6 @@ class equipmentPage(CTkFrame):
         except Exception as e:
             print(f"Error creating Cadet window: {e}")
 
-
 # Report Page
 class reportPage(CTkFrame):
     def __init__(self, parent, controller):
@@ -383,7 +500,6 @@ class reportPage(CTkFrame):
 
         content = CTkFrame(self, fg_color="transparent")
         content.pack(side="left", fill="both", expand=True)
-
 
 # Sidebar
 class Sidebar(CTkFrame):
@@ -435,7 +551,7 @@ class QPAD(CTk):
         self.cadet_df.to_csv(cadet_path, index=False)
 
         self.cadet_equip_df = pd.read_csv(cadet_equip_path) if os.path.exists(cadet_equip_path) else pd.DataFrame(
-            columns=["ID No.", "Cadet IDs"])
+            columns=["ID No.", "Cadet IDs", "Date Issued"])
         self.cadet_equip_df.to_csv(cadet_equip_path, index=False)
 
         self.container = CTkFrame(self)
