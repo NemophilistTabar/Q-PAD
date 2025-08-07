@@ -199,7 +199,24 @@ class databasePage(CTkFrame):
         assign_button.pack(pady=10)
 
     def return_equipment(self):
-        print("Return Equipment")
+        top = CTkToplevel(self)
+        top.title("Return Equipment")
+        top.geometry("600x600")
+
+        title_label = CTkLabel(top, text="Return Equipment", font=("Arial", 20))
+        title_label.pack(pady=10)
+
+        # Load cadet list
+        cadet_names = self.controller.cadet_df["Cadet Name"].astype(str).tolist()
+        cadet_ids = self.controller.cadet_df["ID No."].tolist()
+        cadet_name_id_map = dict(zip(cadet_names, cadet_ids))
+
+        # Cadet dropdown
+        CTkLabel(top, text="Select Cadet:").pack(pady=(10, 0))
+        cadet_id_entry = CTkComboBox(top, values=cadet_names)
+        cadet_id_entry.pack(pady=(0, 10))
+
+
 
     def add_equipment(self):
         window = CTkToplevel(self)
