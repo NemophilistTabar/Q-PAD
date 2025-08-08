@@ -82,10 +82,25 @@ class databasePage(CTkFrame):
 
         # Show cadets issued this item
         item_id = item["ID No."]
-        df = self.controller.cadet_df
+        df = self.controller.cadet_equip_df
         issued_cadets = df[df["ID No."] == item_id]["Cadet IDs"].tolist()
-        for name in issued_cadets:
-            CTkLabel(self.issued_to_frame, text=name).pack(anchor="w")
+
+        unique_cadets = []
+        seen = set()
+        for cadet_id in issued_cadets:
+            if cadet_id not in seen:
+                unique_cadets.append(cadet_id)
+                seen.add(cadet_id)
+
+        cadet_df = self.controller.cadet_df
+        for cadet_id in unique_cadets:
+            cadet_row = cadet_df[cadet_df["ID No."] == cadet_id]
+            if not cadet_row.empty:
+                cadet_name = cadet_row.iloc[0]["Cadet Name"]
+                CTkLabel(self.issued_to_frame, text=cadet_name).pack(anchor="w")
+            else:
+                # fallback to show ID if name not found
+                CTkLabel(self.issued_to_frame, text=cadet_id).pack(anchor="w")
 
     def issue_equipment(self):
         top = CTkToplevel(self)
