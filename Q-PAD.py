@@ -201,8 +201,8 @@ class databasePage(CTkFrame):
 
                 for _ in range(qty):
                     self.controller.cadet_equip_df.loc[len(self.controller.cadet_equip_df)] = {
-                        "Cadet IDs": cadet_id,
-                        "ID No.": str(item_id),
+                        "Cadet IDs": str(cadet_id).strip(),
+                        "ID No.": str(item_id).strip(),
                         "Date Issued": date_issued
                     }
 
@@ -220,118 +220,7 @@ class databasePage(CTkFrame):
         assign_button.lift()
 
     def return_equipment(self):
-        top = CTkToplevel(self)
-        top.title("Return Equipment")
-        top.geometry("700x700")
-
-        title_label = CTkLabel(top, text="Return Equipment", font=("Arial", 20))
-        title_label.pack(pady=10)
-
-        # Convert IDs to string just in case (ensure consistent types)
-        self.controller.equipment_df["ID No."] = self.controller.equipment_df["ID No."].astype(str)
-        self.controller.cadet_equip_df["ID No."] = self.controller.cadet_equip_df["ID No."].astype(str)
-        self.controller.cadet_df["ID No."] = self.controller.cadet_df["ID No."].astype(str)
-
-        cadet_names = self.controller.cadet_df["Cadet Name"].astype(str).tolist()
-        cadet_ids = self.controller.cadet_df["ID No."].tolist()
-        cadet_name_id_map = dict(zip(cadet_names, cadet_ids))
-
-        CTkLabel(top, text="Select Cadet:").pack(pady=(10, 0))
-        cadet_combo = CTkComboBox(top, values=cadet_names)
-        cadet_combo.pack(pady=(0, 10))
-
-        checklist_frame = CTkScrollableFrame(top, width=600, height=400)
-        checklist_frame.pack(pady=10)
-
-        equipment_entries = {}
-
-        def populate_checklist():
-            cadet_name = cadet_combo.get()
-            cadet_id = cadet_name_id_map.get(cadet_name)
-
-            if not cadet_id:
-                return
-
-            for widget in checklist_frame.winfo_children():
-                widget.destroy()
-            equipment_entries.clear()
-
-            df = self.controller.cadet_equip_df.copy()
-
-            # Make sure both sides are strings
-            df["Cadet IDs"] = df["Cadet IDs"].astype(str)
-            cadet_id_str = str(cadet_id)
-
-            # Filter after checking for issued items
-            issued_df = df[df["Cadet IDs"] == cadet_id_str]
-
-            item_counts = Counter(issued_df["ID No."])
-
-            if not item_counts:
-                CTkLabel(checklist_frame, text="No equipment issued.").pack()
-                return
-
-            for item_id, count in item_counts.items():
-                item_row = self.controller.equipment_df[
-                    self.controller.equipment_df["ID No."] == item_id
-                    ]
-                if item_row.empty:
-                    continue
-
-                item = item_row.iloc[0]
-                item_name = item["Item Name"]
-                item_size = item["Size"]
-
-                row_frame = CTkFrame(checklist_frame)
-                row_frame.pack(fill="x", pady=5, padx=10)
-
-                label = CTkLabel(row_frame, text=f"{item_name} (Size: {item_size}) — x{count}")
-                label.pack(side="left", padx=5)
-
-                qty_entry = CTkEntry(row_frame, width=60, placeholder_text="0")
-                qty_entry.pack(side="left")
-
-                equipment_entries[item_id] = (qty_entry, count)
-
-        cadet_combo.bind("<<ComboboxSelected>>", lambda e: populate_checklist())
-
-        def process_return():
-            cadet_name = cadet_combo.get()
-            cadet_id = cadet_name_id_map.get(cadet_name)
-            if not cadet_id:
-                print("Invalid cadet selected.")
-                return
-
-            to_remove = []
-            for item_id, (entry, max_qty) in equipment_entries.items():
-                try:
-                    return_qty = int(entry.get())
-                    if return_qty <= 0:
-                        continue
-                    if return_qty > max_qty:
-                        print(f"Can't return more than issued: {item_id}")
-                        continue
-                except ValueError:
-                    continue
-
-                # Update equipment_df
-                df = self.controller.equipment_df
-                df.loc[df["ID No."] == item_id, "Issued QTY"] -= return_qty
-                df.loc[df["ID No."] == item_id, "Stock QTY"] += return_qty
-
-                # Remove rows from cadet_equip_df
-                issued_df = self.controller.cadet_equip_df
-                item_mask = (issued_df["Cadet IDs"] == cadet_id) & (issued_df["ID No."] == item_id)
-                item_indexes = issued_df[item_mask].index[:return_qty]
-                to_remove.extend(item_indexes)
-
-            self.controller.cadet_equip_df.drop(index=to_remove, inplace=True)
-            self.controller.save_dataframe()
-            self.controller.populate_table(self.controller.equipment_df)
-            top.destroy()
-            print("Return processed.")
-
-        CTkButton(top, text="Return Equipment", command=process_return).pack(pady=10)
+     print("return equipment")
 
     def add_equipment(self):
         window = CTkToplevel(self)
