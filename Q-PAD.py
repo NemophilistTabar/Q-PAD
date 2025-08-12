@@ -9,7 +9,7 @@ from customtkinter import (
     CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame,
     CTkScrollableFrame, CTkImage, CTkToplevel, CTkEntry, CTkComboBox)
 
-# HomePage
+# Homepage
 class homePage(CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -435,6 +435,7 @@ class QPAD(CTk):
         set_appearance_mode("system")
         set_default_color_theme("blue")
 
+        # Load Logo Image
         try:
             Logo = Image.open("Images/bcacu.png")
             self.shared_image = CTkImage(light_image=Logo, dark_image=Logo, size=(100, 100))
@@ -442,10 +443,12 @@ class QPAD(CTk):
             print(f"Error loading logo: {e}")
             self.shared_image = None
 
+        # Set paths to csv files
         eq_path = "equipment_data.csv"
         cadet_path = "cadet_data.csv"
         cadet_equip_path = "cadet_equipment.csv"
 
+        # Validate existance of csvs and generate them if they dont 
         self.equipment_df = pd.read_csv(eq_path) if os.path.exists(eq_path) else pd.DataFrame(
             columns=["Item Name", "Size", "ID No.", "Stock QTY", "Issued QTY", "Item Description"])
         self.equipment_df.to_csv(eq_path, index=False)
