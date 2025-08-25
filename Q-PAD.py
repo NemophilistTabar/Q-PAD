@@ -448,7 +448,7 @@ class QPAD(CTk):
         cadet_path = "cadet_data.csv"
         cadet_equip_path = "cadet_equipment.csv"
 
-        # Validate existance of csvs and generate them if they dont 
+        # Validate existence of csvs and generate them if they dont
         self.equipment_df = pd.read_csv(eq_path) if os.path.exists(eq_path) else pd.DataFrame(
             columns=["Item Name", "Size", "ID No.", "Stock QTY", "Issued QTY", "Item Description"])
         self.equipment_df.to_csv(eq_path, index=False)
@@ -515,6 +515,7 @@ class QPAD(CTk):
                 label = CTkLabel(table_frame, text=str(row[col_name]), font=("Arial", 12))
                 label.grid(row=row_index + 1, column=col_index, padx=10, pady=2, sticky="w")
 
+    # Function to allow the switching of frames
     def showFrame(self, pageName):
         frame = self.frames[pageName]
         frame.tkraise()
