@@ -1,6 +1,8 @@
 # import libraries
 import random
 import os
+from tkinter import filedialog
+import openpyxl
 import pandas as pd
 from PIL import Image
 from collections import Counter
@@ -240,7 +242,7 @@ class databasePage(CTkFrame):
     def add_equipment(self):
         window = CTkToplevel(self)
         window.title("Add New Equipment")
-        window.geometry("400x500")
+        window.geometry("400x600")
         window.grab_set()
 
         def generate_unique_id():
@@ -283,7 +285,40 @@ class databasePage(CTkFrame):
             except ValueError:
                 print("Invalid input.")
 
+        def import_page():
+            top = CTkToplevel(self)
+            top.title("Mass import...")
+            top.geometry("500x600")
+            top.grab_set()
+            top.resizable(False, False)
+
+            def select_file():
+                file = filedialog.askopenfilename(
+                    filetypes=[("Excel File", "*.xlsx"), ("CSV File", "*.csv")]
+                )
+                if file:
+                    print("Selected file:", file)
+                    if file.endswith(".xlsx"):
+                        read_file = pd.read_excel(file)
+                        read_file.to_csv("test.csv")
+                        df = pd.DataFrame(pd.read_csv("Test.csv"))
+                    else:
+                        df = pd.read_csv(file)
+
+                    print(df)
+
+                else:
+                    print("No selected file.")
+
+            select_button = CTkButton(top, text="Select File", command=select_file)
+            select_button.pack(pady=20)
+            info_label = CTkLabel(top, text="Drag/drop to be added (it very hard)")
+            info_label.pack(pady=20)
+
+
+
         CTkButton(window, text="Add", command=submit).pack(pady=20)
+        CTkButton(window, text="Mass Import", command=import_page).pack(pady=20)
 
     def remove_equipment(self):
         print("Remove Equipment")
@@ -437,7 +472,10 @@ class QPAD(CTk):
 
         # Load Logo Image
         try:
-            Logo = Image.open("Images/bcacu.png")
+            mstr_dir = os.path.dirname(__file__)
+            img_path = os.path.join(mstr_dir, "Images", "bcacu.png")
+
+            Logo = Image.open(img_path)
             self.shared_image = CTkImage(light_image=Logo, dark_image=Logo, size=(100, 100))
         except Exception as e:
             print(f"Error loading logo: {e}")
