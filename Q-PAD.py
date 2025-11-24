@@ -1,15 +1,16 @@
 # import libraries
-import random
 import os
-from tkinter import filedialog
-import openpyxl
-import pandas as pd
-from PIL import Image
+import random
 from collections import Counter
 from datetime import datetime
+from tkinter import filedialog
+
+import pandas as pd
+from PIL import Image
 from customtkinter import (
     CTk, set_appearance_mode, set_default_color_theme, CTkLabel, CTkButton, CTkFrame,
     CTkScrollableFrame, CTkImage, CTkToplevel, CTkEntry, CTkComboBox)
+
 
 # Homepage
 class homePage(CTkFrame):
@@ -66,6 +67,14 @@ class databasePage(CTkFrame):
 
         self.table_frame = CTkScrollableFrame(content)
         self.table_frame.pack(fill="both", expand=True, pady=10)
+
+    def generate_unique_id(self):
+        import random
+        existing_ids = set(self.controller.equipment_df["ID No."].astype(str))
+        while True:
+            new_id = f"{random.randint(1000, 9999)}"
+            if new_id not in existing_ids:
+                return new_id
 
     def update_item_details(self, item):
         for widget in self.item_info_frame.winfo_children():
@@ -245,14 +254,7 @@ class databasePage(CTkFrame):
         window.geometry("400x600")
         window.grab_set()
 
-        def generate_unique_id():
-            existing_ids = set(self.controller.equipment_df["ID No."].astype(str))
-            while True:
-                new_id = f"{random.randint(1000, 9999)}"
-                if new_id not in existing_ids:
-                    return new_id
-
-        new_id = generate_unique_id()
+        new_id = self.generate_unique_id()
         entries = {}
         labels = ["Item Name", "Size", "Stock QTY", "Issued QTY", "Item Description"]
         for label in labels:
@@ -299,13 +301,30 @@ class databasePage(CTkFrame):
                 if file:
                     print("Selected file:", file)
                     if file.endswith(".xlsx"):
-                        read_file = pd.read_excel(file)
-                        read_file.to_csv("test.csv")
-                        df = pd.DataFrame(pd.read_csv("Test.csv"))
+                        import_df = pd.DataFrame(pd.read_excel(file))
+                        print(import_df.head(10))
                     else:
-                        df = pd.read_csv(file)
+                        import_df = pd.read_csv(file)
 
-                    print(df)
+                    if "ID No." in import_df.columns:
+                        import_df = import_df.drop(columns=["ID No."])
+
+                    print(import_df)
+
+                    for col in self.controller.equipment_df.columns:
+                        if col not in import_df.columns:
+                            import_df[col] = ""
+
+                    import_df = import_df[self.controller.equipment_df.columns.drop("ID No.")]
+                    import_df["ID No."] = [self.generate_unique_id() for _ in range(len(import_df))]
+
+                    self.controller.equipment_df = pd.concat(
+                        [self.controller.equipment_df, import_df],
+                        ignore_index=True
+                    ).drop_duplicates(subset=["ID No."], ignore_index=True)
+
+                    self.controller.save_dataframe()
+                    self.controller.populate_table(self.controller.equipment_df)
 
                 else:
                     print("No selected file.")
@@ -477,6 +496,10 @@ class QPAD(CTk):
 
             Logo = Image.open(img_path)
             self.shared_image = CTkImage(light_image=Logo, dark_image=Logo, size=(100, 100))
+            Logo.save("logo.ico")
+            self.iconbitmap("logo.ico")
+
+
         except Exception as e:
             print(f"Error loading logo: {e}")
             self.shared_image = None
