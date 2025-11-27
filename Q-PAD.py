@@ -290,7 +290,7 @@ class databasePage(CTkFrame):
         def import_page():
             top = CTkToplevel(self)
             top.title("Mass import...")
-            top.geometry("500x600")
+            top.geometry("400x200")
             top.grab_set()
             top.resizable(False, False)
 
@@ -325,6 +325,7 @@ class databasePage(CTkFrame):
 
                     self.controller.save_dataframe()
                     self.controller.populate_table(self.controller.equipment_df)
+                    top.destroy()
 
                 else:
                     print("No selected file.")
