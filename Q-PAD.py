@@ -4,7 +4,7 @@ import random
 from collections import Counter
 from datetime import datetime
 from tkinter import filedialog
-
+import ctypes
 import pandas as pd
 from PIL import Image
 from customtkinter import (
@@ -318,10 +318,32 @@ class databasePage(CTkFrame):
                     import_df = import_df[self.controller.equipment_df.columns.drop("ID No.")]
                     import_df["ID No."] = [self.generate_unique_id() for _ in range(len(import_df))]
 
-                    self.controller.equipment_df = pd.concat(
-                        [self.controller.equipment_df, import_df],
-                        ignore_index=True
-                    ).drop_duplicates(subset=["ID No."], ignore_index=True)
+                    stock_col = "Stock QTY"
+
+                    for idx, row in import_df.iterrows():
+                        name = row["Item Name"]
+                        size = row["Size"]
+
+                        match_exist = (
+                                (self.controller.equipment_df["Item Name"] == name) &
+                                (self.controller.equipment_df["Size"] == size)
+                        )
+
+                        if match_exist.any():
+                            # existing item
+                            existing_idx = self.controller.equipment_df.index[match_exist][0]
+
+                            existing_stock = int(self.controller.equipment_df.loc[existing_idx, stock_col])
+                            import_stock = int(row[stock_col])
+
+                            new_stock = existing_stock + import_stock
+                            self.controller.equipment_df.loc[existing_idx, stock_col] = new_stock
+
+                        else:
+                            # new item
+                            new_row = row.copy()
+                            new_row["ID No."] = self.generate_unique_id()
+                            self.controller.equipment_df.loc[len(self.controller.equipment_df)] = new_row
 
                     self.controller.save_dataframe()
                     self.controller.populate_table(self.controller.equipment_df)
@@ -498,6 +520,7 @@ class QPAD(CTk):
             Logo = Image.open(img_path)
             self.shared_image = CTkImage(light_image=Logo, dark_image=Logo, size=(100, 100))
             Logo.save("logo.ico")
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("QPAD.app")
             self.iconbitmap("logo.ico")
 
 
