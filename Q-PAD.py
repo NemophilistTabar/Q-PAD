@@ -19,9 +19,9 @@ class homePage(CTkFrame):
 
         # Sidebar
         Sidebar(self, controller, "Q-PAD", [
-            ("View Database", lambda: controller.showFrame("databasePage")),
-            ("View Cadet Equipment", lambda: controller.showFrame("equipmentPage")),
-            ("Generate Report", lambda: controller.showFrame("reportPage"))
+            ("View Database", lambda: controller.showframe("databasePage")),
+            ("View Cadet Equipment", lambda: controller.showframe("equipmentPage")),
+            ("Generate Report", lambda: controller.showframe("reportPage"))
         ])
 
         # Main content area
@@ -45,7 +45,7 @@ class databasePage(CTkFrame):
         self.controller = controller
 
         Sidebar(self, controller, "Database", [
-            ("Home", lambda: controller.showFrame("homePage")),
+            ("Home", lambda: controller.showframe("homePage")),
             ("Issue Equipment", self.issue_equipment),
             ("Return Equipment", self.return_equipment),
             ("Add Equipment to Database", self.add_equipment),
@@ -334,7 +334,7 @@ class databasePage(CTkFrame):
                             existing_idx = self.controller.equipment_df.index[match_exist][0]
 
                             existing_stock = int(self.controller.equipment_df.loc[existing_idx, stock_col])
-                            import_stock = int(row[stock_col])
+                            import_stock = int(row["Stock QTY"])
 
                             new_stock = existing_stock + import_stock
                             self.controller.equipment_df.loc[existing_idx, stock_col] = new_stock
@@ -344,6 +344,9 @@ class databasePage(CTkFrame):
                             new_row = row.copy()
                             new_row["ID No."] = self.generate_unique_id()
                             self.controller.equipment_df.loc[len(self.controller.equipment_df)] = new_row
+
+                    import_df = import_df[self.controller.equipment_df.columns.drop("ID No.")]
+                    import_df["ID No."] = [self.generate_unique_id() for _ in range(len(import_df))]
 
                     self.controller.save_dataframe()
                     self.controller.populate_table(self.controller.equipment_df)
@@ -357,13 +360,116 @@ class databasePage(CTkFrame):
             info_label = CTkLabel(top, text="Drag/drop to be added (it very hard)")
             info_label.pack(pady=20)
 
-
-
         CTkButton(window, text="Add", command=submit).pack(pady=20)
         CTkButton(window, text="Mass Import", command=import_page).pack(pady=20)
 
     def remove_equipment(self):
-        print("Remove Equipment")
+        rmovpge = CTkToplevel(self)
+        rmovpge.title("Remove Equipment")
+        rmovpge.geometry("400x500")
+        rmovpge.grab_set()
+        rmovpge.resizable(False, False)
+
+        search_frame = CTkFrame(rmovpge)
+        search_frame.pack(pady=5)
+        search_entry = CTkEntry(search_frame, placeholder_text="Search by name or ID...")
+        search_entry.pack(side="left", padx=(0, 10))
+        search_button = CTkButton(search_frame, text="Search")
+        search_button.pack(side="left")
+
+        checklist_frame = CTkScrollableFrame(rmovpge, width=500, height=400)
+        checklist_frame.pack(pady=10)
+
+        equipment_entries = []
+        equipment_quantities = {}
+
+        def populate_equipment_list(filter_query=""):
+            for (qty_entry, item_id_entry) in equipment_entries:
+                equipment_quantities[item_id_entry] = qty_entry.get()
+
+            for widget in checklist_frame.winfo_children():
+                widget.destroy()
+            equipment_entries.clear()
+
+            for _, row in self.controller.equipment_df.iterrows():
+                item_id = str(row["ID No."])
+                item_name = str(row["Item Name"])
+                item_size = str(row["Size"])
+                item_qty = str(row["Stock QTY"])
+
+                if filter_query and (filter_query not in item_name.lower() and filter_query not in item_id.lower()):
+                    continue
+
+                row_frame = CTkFrame(checklist_frame)
+                row_frame.pack(fill="x", pady=2, padx=10)
+
+                label = CTkLabel(row_frame, text=f"{item_name} (Size: {item_size}) Qty: {item_qty}")
+                label.pack(side="left", padx=(0, 10))
+                qty_entry = CTkEntry(row_frame, width=50, placeholder_text="0")
+                qty_entry.pack(side="left")
+
+                # Restore Qty Values
+                if item_id in equipment_quantities:
+                    qty_entry.insert(0, equipment_quantities[item_id])
+
+                def on_entry_change(item, entry):
+                    equipment_quantities[item] = entry.get()
+
+                qty_entry.bind("<KeyRelease>", lambda e, item=item_id, entry=qty_entry: on_entry_change(item, entry))
+                equipment_entries.append((qty_entry, item_id))
+
+        def perform_search():
+            query = search_entry.get().lower().strip()
+            populate_equipment_list(query)
+
+        search_entry.bind("<KeyRelease>", lambda e: perform_search())
+        populate_equipment_list()
+
+        def remove_items():
+            print("Removing Equipment...")
+            df = self.controller.equipment_df
+
+            ids_to_remove = []
+
+            for qty_entry, item_id in equipment_entries:
+                value = qty_entry.get().strip()
+
+                if not value:
+                    continue
+
+                try:
+                    qty = int(value)
+                except ValueError:
+                    continue
+
+                if qty <= 0:
+                    continue
+
+                mask = df["ID No."].astype(str) == str(item_id)
+                stock = df.loc[mask, "Stock QTY"]
+
+                if stock.empty:
+                    continue
+
+                stock_qty = int(stock.iloc[0])
+
+                if qty >= stock_qty:
+                    ids_to_remove.append(item_id)
+                else:
+                    df.loc[mask, "Stock QTY"] = stock_qty - qty
+
+            if ids_to_remove:
+                df = df[~df["ID No."].astype(str).isin(ids_to_remove)]
+
+            self.equipment_df = df.reset_index(drop=True)
+            self.controller.save_dataframe()
+
+            populate_equipment_list(search_entry.get().lower().strip())
+            rmovpge.destroy()
+
+        removebutton = CTkButton(rmovpge, text="Remove Equipment", command=remove_items)
+        removebutton.pack(side="left")
+        removebutton.lift()
 
 # Cadet Equipment Page
 class equipmentPage(CTkFrame):
@@ -372,8 +478,8 @@ class equipmentPage(CTkFrame):
         self.controller = controller
 
         Sidebar(self, controller, "Cadet Equipment", [
-            ("Home", lambda: controller.showFrame("homePage")),
-             ("Add Cadet", self.add_Cadet)
+            ("Home", lambda: controller.showframe("homePage")),
+             ("Add Cadet", self.add_cadet)
         ])
 
         self.cadet_df = self.controller.cadet_df
@@ -433,7 +539,7 @@ class equipmentPage(CTkFrame):
                     text += f" — x{count}"
                 CTkLabel(self.equipment_display, text=text).pack(anchor="w", padx=10, pady=2)
 
-    def add_Cadet(self):
+    def add_cadet(self):
         print("Add Cadet clicked")
         try:
             window = CTkToplevel(self)
@@ -476,7 +582,7 @@ class reportPage(CTkFrame):
         super().__init__(parent)
 
         Sidebar(self, controller, "Reports", [
-            ("Home", lambda: controller.showFrame("homePage"))
+            ("Home", lambda: controller.showframe("homePage"))
         ])
 
         content = CTkFrame(self, fg_color="transparent")
@@ -517,9 +623,9 @@ class QPAD(CTk):
             mstr_dir = os.path.dirname(__file__)
             img_path = os.path.join(mstr_dir, "Images", "bcacu.png")
 
-            Logo = Image.open(img_path)
-            self.shared_image = CTkImage(light_image=Logo, dark_image=Logo, size=(100, 100))
-            Logo.save("logo.ico")
+            logo = Image.open(img_path)
+            self.shared_image = CTkImage(light_image=logo, dark_image=logo, size=(100, 100))
+            logo.save("logo.ico")
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("QPAD.app")
             self.iconbitmap("logo.ico")
 
@@ -560,7 +666,7 @@ class QPAD(CTk):
             elif name == "equipmentPage":
                 self.equipment_table_container = frame
 
-        self.showFrame("homePage")
+        self.showframe("homePage")
 
     def save_dataframe(self):
         self.equipment_df.to_csv("equipment_data.csv", index=False)
@@ -601,12 +707,12 @@ class QPAD(CTk):
                 label.grid(row=row_index + 1, column=col_index, padx=10, pady=2, sticky="w")
 
     # Function to allow the switching of frames
-    def showFrame(self, pageName):
-        frame = self.frames[pageName]
+    def showframe(self, pagename):
+        frame = self.frames[pagename]
         frame.tkraise()
-        if pageName == "databasePage":
+        if pagename == "databasePage":
             self.populate_table(self.equipment_df)
-        elif pageName == "equipmentPage":
+        elif pagename == "equipmentPage":
             self.frames["equipmentPage"].refresh()
 
 if __name__ == "__main__":
